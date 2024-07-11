@@ -4,5 +4,3 @@
 
 
 (clerk/serve! {:watch-paths [ "src"]})
-
-(clerk/vl )

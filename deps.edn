@@ -1,1 +1,3 @@
-{:deps {io.github.nextjournal/clerk {:mvn/version "0.16.1016"}}}
+{:deps {io.github.nextjournal/clerk {:mvn/version "0.16.1016"}
+        #_#_org.clojure/test.check {:mvn/version "0.9.0"}
+        org.clojure/math.combinatorics {:mvn/version "0.3.0"}}}
