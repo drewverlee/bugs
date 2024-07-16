@@ -457,39 +457,38 @@
 
 (integers->min-edge-graph-v2! integers)
 
-;; This is the Bug! Our tips so far weren't enough to protect us from it, but
-;; thats ok were only half way through them. And before we take the next step and tackle
-;; this pest, I want to take a moment and discuss why i think it's important to
-;; take a step back and think about how we framed this issue in the first place.
+;; This is the Bug! Our tips so far weren't enough to protect us from it, but thats ok were only half way through them. And before we take the next step and tackle this pest, I want to take a moment and discuss why i think it's important to actually take a step back and think about how we framed this issue in the first place by calling it a bug.
 
+;; In the software community a 'bug' commonly refers to any issue with where software is involved. Sounds vague? It is, wikipedia's defination is simply:
 
-;; In the software community a 'bug' commonly refers to any issue with the
-;; software. To a entomogists, a bug seems to be anything with a piercing mouth
-;; that sucks juices from plants or animals. Around maybe a 1,000 years ago
-;; 'bug' roughly meant bugbear. And now , to most people refers to those very
-;; little things that fly or crawl around.
+;; > A software bug is a bug in computer software.
+
+;; Techopedia, the next search result, has this to say about bugs:
+
+;; > A software bug is a problem causing a program to crash or produce invalid output.
+
+;; That's better then wikipedia, but i'm curious how
+
+;; To a entomogists, a bug seems to be anything with a piercing mouth that sucks juices from plants or animals. Intrestingly, maybe a 1,000 years ago 'bug' roughly meant bugbear. And now , to most people refers to those very little things that fly or crawl around.
 
 ;; The common theme here, except for the entomologist, is that bugs at best, are
 ;; useless, and likely are irritating creatures that most would like to remove
 ;; from the situation.
 
 ;; I feel this outlook, when applied to troubleshooting a software problem, of
-;; assuming the problem is something to be _removed_ is often misguided.
+;; assuming the problem is a pest to be _removed_ is often misguided.
 
-;; Instead, what i need to do to realize my desires is understand what those
-;; really are in the first place. Put another way, most 'issues' I run across
-;; feel, in retrospect, like I was upset that sunflowers didn't taste good
-;; despite my constant care, and attention to watering them.
+;; Often, instead, what's happened is that the author understands the program they have written, and how it will behave, but doesn't really understand what the objective is. I thought all seeds grew tomato plants, so as part of along process of buying, planting, watering, when I end up with eating perfectly good sunflowers, it would be insane to start thinking about what to _remove_ from my sunflowers to make them into tomato plants.
 
 ;; Put another way, I didn't need to remove something from my sunflower, it's simply that what I really
-;; wanted to grow was tomatoes. I was growing the wrong, thing, so it was a weed.
+;; wanted to grow was tomatoes. There was nothing wrong with the plant I had, it just wasn't what I wanted.
+;; So it was a weed.
 
 ;; I want make a suggestion to you, my reader, of not saying "we have a bug", but asking
-;; Is this a bug or a weed? This is my next trouble shooting tip:
+;; Is this a bug or a weed? And that, is my next troubleshooting tip:
 
 ^{:nextjournal.clerk/visibility {:code :hide}}
-(tip! "Weed Or Bug" {:background-color "green" :color "white"})
-
+(tip! "Ask 'Weed or Bug?'" {:background-color "green" :color "white"})
 
 ;; While this distintion seems fuzzy in that both bugs and weeds are both
 ;; undesirable things, however a weeds defining characteristic isn't that there
@@ -502,7 +501,6 @@
 ;; What matters is that the question starts to divide the problem. And breaking
 ;; the problem apart is the heart of effective troubleshooting.
 
-
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (import '(javax.imageio ImageIO))
 
@@ -510,9 +508,9 @@
 (ImageIO/read (.toURL (.toURI (clojure.java.io/file "resources/bug-yin-yang.png"))))
 
 ;; So, do we have a bug or a weed? Is there something our program is doing wrong?
-;; Or is lacking something?
+;; Or is it that we don't understand what we really wanted in the first pace?
 
-;; Here is a hint, what didn't we actually test? Here are our tests for reference
+;; Here is a hint, what didn't we actually test? Here are our tests for reference:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 ["base cases"
@@ -520,18 +518,16 @@
  "unconnected nodes"
  "uneven positive and negative nodes"]
 
-;; None of those claim to minimize transactions other then remove cycles, but are cycles
+;; None of those claim to minimize transactions/loans/edges other then remove cycles, but are cycles
 ;; the only way you end up with extra transactions? Given the last graph we saw, clearly not.
-;; Does removing a cycle help? kind of. Is it implemented correctly? Yes. Is it enough? No.
+;; Does removing a cycle help? Yes. Is it enough? Clearly not.
 
-;; The question is how does our algorithm grow such at each step we ensure the
+;; The question is how does our set of consolidated loans grow such at each step we ensure the
 ;; minimal number of transactions? First off, we need to strip away the
-;; ambiguity.
+;; ambiguity of this question.
 
 ;; A transaction/loan/edge is produced anytime we add two net-worths/integers/node-labels and
-;; get a non-zero result.
-
-;; So to avoid transactions, we want results that equal zero.
+;; get a non-zero result. So to avoid transactions, we want results that equal zero.
 
 ;; So given the choice, our algorithm should always pick 2 numbers that equal
 ;; zero. And given there is no option to do that, should it always remove one
@@ -542,11 +538,11 @@
 
 ;; So then, given no choice to remove-2 or remove-0, and we have to remove-1,
 ;; which one to remove? Put another way, which two numbers to pick! Well that
-;; choice is recursive, you pick the two, that if not on this turn allow you to remove-2, then they will on the next,
-;; and the next, etc....
+;; choice is recursive, you pick the two, that if not on this turn allow you to remove-2, then they will on the next, and the next, etc....
 
-;; what this do, if done correctly, is break our orginal set, really a multiset
-;; (duplicates allowed), into as many subsets as possible where each subset, really a partition because, it sums to 0, and themselves contain no partition which sums to 0.
+
+;; Implemented correctly what this would do is parition our orginal set, really a multiset
+;; (duplicates allowed), into as many subsets as possible where each subset sums to 0, but themselves contain no subsets which sums to 0.
 
 ;; The 'easiest' way to find every possible subset that sums to zero, is to
 ;; take, every permutation of the orginal set, reduce over it, and collect
@@ -560,10 +556,23 @@
 ;; However the run time complexity of finding all permutations that is n! or (n)(n-1)..(n-n).
 
 ;; So is there a better way? Or maybe caching can help?
+
 ;; I wasn't able to see any better solutions, at first I thought if i could find
 ;; a way to select two numbers, such that my next selection would sum to 0, that would help,
-;; but i quickly realized thats just kicking the can, as a 0 sum might not be possible in the next
+;; but I quickly realized thats just kicking the can, as a 0 sum might not be possible in the next
 ;; solution either. This principle seems to apply to picking three numbers that sum to zero as well.
+;; As our test case demonstrates, to illusrate that here picturing where the incorrect triplet is highlited in red.
+
+;; TODO picture
+
+;; https://docs.google.com/drawings/d/e/2PACX-1vRArD27FhyPzvu5xEVBg-2aBRSAQCt14jyvoQT-kDC4E6Gz6N31ubApZwZ9J_h2pW2oE0qtVvK1P4qZ/pub?w=960&h=720
+
+;; Honestly, i think the picture just shows an example, but doesn't build any intution about the nature of the problem.
+
+;; The best I can say about the nature of what were dealing with is going to sound almost philosphical.
+;; Firstly numbers are ORDER, i mean, what is 0 if not less then 1, what is 3 if not bigger then 2? If we only had 1 number, it wouldn't be much use. All operations on numbers simply re-order them comapared to other numbers.
+
+;;
 
 ;; a bit disheartened, because I knew a solution with permutations wouldn't scale very well,
 ;; I quickly coded it to at least soldiify the idea. Just as described, we need something
@@ -619,7 +628,7 @@
 ;; That would mean that any sets we cached would themselves contain sets/integers that were guartneed to be 'the right ones'.
 ;; The problem doesn't seem like it reduces. But maybe I'm wrong. Time to look afield, and this brings us to another tip...
 
-(tip! "Ask Good Questions"
+(tip! "Ask hard earned questions"
       {:background-color "blue" :color "white"})
 
 ;; an answer is only as good as it's question. And so now that were armed with a good question, which
