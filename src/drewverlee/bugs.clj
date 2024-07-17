@@ -1,5 +1,9 @@
 ;; # Seven Troubleshooting Tips for Squashing Software Bugs
 
+
+^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+(require '[nextjournal.clerk :as clerk])
+
 ^{:nextjournal.clerk/visibility {:code :hide}}
 (clerk/html
  [:img {:src "https://docs.google.com/drawings/d/e/2PACX-1vQ6rsadfjdL3n7KjCPLGknAhV5x8jen8M0xvyVWtNGrAPat80_BFyvkl7xLjyReY383gXGOCATZ9G56/pub?w=960&amp;h=720"}])
@@ -19,11 +23,17 @@
 ;; Can we settle on somewhere in between? Maybe find that middle ground between
 ;; a flattering short lie, and the confusing long truth.
 
-;; Most importantly... has the interviewer already stopped reading this and
-;; moved on? Maybe, but I have to hope they enjoy hearing about the journey.
-;; And journeys aren't straight line, there winding rivers
+;; And so will go on an journey to collect my seven favorite trouble shootings tips!
+
+^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
+(import '(javax.imageio ImageIO))
+
+^{:nextjournal.clerk/visibility {:code :hide}}
+(ImageIO/read (.toURL (.toURI (clojure.java.io/file "resources/journey-start.png"))))
+
+;; But we warned! Journeys aren't straight lines. Oh no, there winding rivers
 ;; that flows back into themselves. The landscape around us changes very little, and
-;; in the end, it's our precipitations and not the world the bends.
+;; in the end, it's our precipitations, and not the world, the bends.
 
 ;; So then, let me set you along the riverbank at a place which could be called
 ;; a beginning. From there, you will travel onward until the end, and your task will be to
@@ -33,15 +43,13 @@
 ;; understand the pain, how can you hope to understand what there is to gain?
 ;; That sounds catchy, let's write it down as our first troubleshooting tip:
 
-
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (defn tip
   [message styles]
   [:p {:style
        (merge
         {:padding       "10px"
-         :border-radius "10px"
+         :border-radius "5px"
          :font-size     "x-large"
          :text-align    "center"}
         styles)} message])
@@ -57,19 +65,20 @@
 
 ;; Great, we hit our first tip, let's introduce the pain by understanding how we got there.
 
-;; So then, imagine your with your friends on a trip, and you stop and have lunch,
-;; the bill comes and the waiter didn't split it. Not wanting to spoil the
+;; So then, imagine you're with your friends on a trip to Europe, and you stop and have lunch,
+;; maybe at peaceful out of the way beer garden in Munchen, Germany.
+;; At the end a single bill. Not wanting to spoil the
 ;; moment with the technicalities, you offer graciously to pay for everyone.
 ;; Tomorrow, at dinner, someone else covers the part. The trend of having
 ;; someone pay for the group continues.
 
-;; However at the end of the trip, everyone becomes suddenly concerned they
+;; However at the end of the trip, everyone suddenly becomes concerned that they
 ;; didn't pay enough, but they are not sure who owes who what. Here is our painful
 ;; headache, we avoided the cost of settling up each night, only to delay it
 ;; until the end. As a result, we have a ledger of debts that need to be balanced,
 ;; they might look something like this?
 
-;; * drew buys kirsten a 10 ice cream cone.
+;;  * drew buys kirsten a 10 ice cream cone.
 ;;  * kirsten buys drew a 5 dollar soda.
 ;;  * drew buys katie a 5 dollar candy.
 
@@ -86,7 +95,7 @@
 
 
 ;; We need to turn this into a set of loans to be repaid. Oh, and wouldn't it be
-;; a nice, because time is money, and sometimes there are transferring fees, to
+;; nice, because time is money, and sometimes there are transferring fees, to
 ;; guarantee it's the minimal number of loans needed? Avoiding cycles like:
 ;; drew paying kirsten 10, and then kirsten turns around and pays drew 5 of that back.
 
@@ -150,9 +159,7 @@
 ^{:nextjournal.clerk/visibility {:code :hide}}
 (tip! "Paint the problem" {:background-color "purple" :color "white"})
 
-;; This is just one example. Though, lets look at several more to make sure we
-;; get the idea. We will want a fast way write and read the cases, so we want to be as concise as possible
-;; TODO should that be a tip
+;; This is just one example. However, let's look at several more to ensure we get the idea. We will want a fast way to write and read the cases, so we want to be as concise as possible
 
 ^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
 (require '[clojure.test :refer [is are deftest testing run-tests run-test]])
@@ -161,44 +168,109 @@
 ^{:nextjournal.clerk/visibility {:result :hide}}
 (declare loans->minimal-loans)
 
-;; our tests should always have to justify themselves with a name, that way if they fail, we have some idea of what we thought we were testing
-;; here is what I can think of so far:
+;; Our tests should always have to justify themselves with a name, that way if they fail, we have some idea of what we thought we were testing in the first place. Before the tests, let your eyes wander across the graph representations:
 
+^{:nextjournal.clerk/visibility {:result :hide :code :hide}}
+(def test-cases
+  {"base cases"        [{:input [] :expected #{}}
+                        {:input [{:loaner :a :loanee :b :loan 1}] :expected #{}}]
+   "remove cycles"     [{:input [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 1}] :expected #{}}
+                        {:input [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 2}] :expected #{{:loaner :b :loanee :a :loan 1}}}]
+   "ok to transfer between unconnected nodes" [{:input [{:loaner :a :loanee :b :loan 1} {:loaner :c :loanee :d :loan 1}] :expected #{{:loaner :c :loanee :b :loan 1} {:loaner :a :loanee :d :loan 1}}} ]
+   "Big examples"
+   [{:input
+     [{:loaner "frodo", :loanee "pippin", :loan 1582}
+      {:loaner "frodo", :loanee "sam", :loan 1582}
+      {:loaner "frodo", :loanee "merry", :loan 80}
+      {:loaner "sam", :loanee "pippin", :loan 321}
+      {:loaner "sam", :loanee "frodo", :loan 1553}
+      {:loaner "sam", :loanee "merry", :loan 37}
+      {:loaner "merry", :loanee "pippin", :loan 594}
+      {:loaner "merry", :loanee "frodo", :loan 594}
+      {:loaner "merry", :loanee "sam", :loan 533}]
+     :expected
+     #{{:loaner "frodo", :loanee "pippin", :loan 1097}
+       {:loaner "merry", :loanee "pippin", :loan 1604}
+       {:loaner "pippin", :loanee "sam", :loan 204}}}]
+   })
 
-[{:fn 'foo :input [0] :output 0}
- {:fn 'foo :input [1] :output 1}]
+^{:nextjournal.clerk/visibility {:result :hide :code :hide}}
+(defn graph-tests!
+  []
+  (let [f (fn [l] (clerk/html
+                   (if (seq l)
+                     (edges->graph! (map vals l))
+                     [:h3 "empty / #{}"]))) ]
+    (for [[title tests]            test-cases
+          {:keys [input expected]} tests]
+      (clerk/html
+        [:div
+         [:h1 title]
+         [:div
+          [:h4 "input"]
+          (f input)]
+         [:div
+          [:h4 "expected"]
+          (f expected)]]))))
+
+^{:nextjournal.clerk/visibility {:code :hide}}
+(graph-tests!)
+
+;; Ok, lets add the lets add the test harness:
 
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 (deftest test-loans->minimal-loans
   (testing "base cases"
-    (is (= (loans->minimal-loans [])
+    (is (= (loans->minimal-loans
+             [])
            #{}))
-    (is (= (loans->minimal-loans [{:loaner :a :loanee :b :loan 1}])
+    (is (= (loans->minimal-loans
+             [{:loaner :a :loanee :b :loan 1}])
            #{{:loaner :a :loanee :b :loan 1}})))
+
   (testing "remove cycles"
-    (is (= (loans->minimal-loans [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 1}])
+    (is (= (loans->minimal-loans
+             [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 1}])
            #{}))
-    (is (= (loans->minimal-loans [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 2}])
+    (is (= (loans->minimal-loans
+             [{:loaner :a :loanee :b :loan 1} {:loaner :b :loanee :a :loan 2}])
            #{{:loaner :b :loanee :a :loan 1}})))
-  (testing "unconnected nodes"
-    (is (= (loans->minimal-loans [{:loaner :a :loanee :b :loan 1} {:loaner :c :loanee :d :loan 1}])
-           #{{:loaner :c :loanee :b :loan 1} {:loaner :a :loanee :d :loan 1}}))))
 
+  (testing "ok to transfer between unconnected nodes"
+    (is (= (loans->minimal-loans
+             [{:loaner :a :loanee :b :loan 1} {:loaner :c :loanee :d :loan 1}])
+           #{{:loaner :c :loanee :b :loan 1} {:loaner :a :loanee :d :loan 1}})))
 
-;; ok, were almost ready to try and code a solution, but you might have noticed that we have two forms of expressing a loan, a hashmap:
+  (testing "big examples"
+    (is (= (loans->minimal-loans
+             [{:loaner "frodo", :loanee "pippin", :loan 1582}
+              {:loaner "frodo", :loanee "sam", :loan 1582}
+              {:loaner "frodo", :loanee "merry", :loan 80}
+              {:loaner "sam", :loanee "pippin", :loan 321}
+              {:loaner "sam", :loanee "frodo", :loan 1553}
+              {:loaner "sam", :loanee "merry", :loan 37}
+              {:loaner "merry", :loanee "pippin", :loan 594}
+              {:loaner "merry", :loanee "frodo", :loan 594}
+              {:loaner "merry", :loanee "sam", :loan 533}] )
+
+           #{{:loaner "frodo", :loanee "pippin", :loan 1097}
+             {:loaner "merry", :loanee "pippin", :loan 1604}
+             {:loaner "pippin", :loanee "sam", :loan 204}}))))
+
+;; Nice! Were almost ready to try and code a solution. You might have noticed that we have two forms of expressing a loan, a hashmap:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 {:loaner "drew" "loanee" "kirsten" :loan 10}
 
-;; and an edge expressed as a triplet
+;; and an edge expressed as a triplet:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 ["drew" "kirsten" 10]
 
 ;; both of these are correct in their own way, and it's worth having both
 ;; because the hashmap carries the business terminology, while the edge is more
-;; generic and concise, this representation will make it easier to pattern match
+;; generic, concise, and will make it easier to pattern match
 ;; our problem to others and re-use concepts from algorithms, graph theory,
 ;; mathematics etc...
 
@@ -211,8 +283,9 @@
 ;; lets go ahead and follow our own advice:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
-(defn loan->edge
-  [{:keys [loaner loanee loan]}] [loaner loanee loan])
+(defn loan->edge [{:keys [loaner loanee loan]}] [loaner loanee loan])
+
+;; now a function to turn our edges into nodes.
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 (defn edges->nodes
@@ -251,12 +324,10 @@
 ;; My first thought was that at the function, at each step would need to take two
 ;; net-worths, the largest and the smallest, and create a loan between them, and add back any reminder.
 
-;; in order to keep our layers clear, lets translate that to taking two nodes,
+;; In order to keep our layers clear, let's translate that to taking two nodes,
 ;; with the largest and smallest labels, and creating a directed edge between
-;; them from the largest to the smallest with largest value as their edge weight, AND add back the
-
-
-;; Here is an implementation which does just that:
+;; them from the largest to the smallest with largest value as their edge weight.
+;; If there is a remaining value, we add it back attached to the smaller node. Here is an implementation which does just that:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 (defn nodes->minimal-edges
@@ -306,7 +377,7 @@
   (testing "remove cycles"
     (is (= (nodes->minimal-edges #{[:a 0] [:b 0]})                     #{}))
     (is (= (nodes->minimal-edges #{[:a -1] [:b 1]})                    #{[:b :a 1]})))
-  (testing "unconnected nodes"
+  (testing "ok to transfer between unconnected nodes"
     (is (= (nodes->minimal-edges #{[:b -1] [:c 1] [:d -1] [:a 1]})    #{[:c :b 1] [:a :d 1]})))
   (testing "uneven positive and negative nodes"
     (is (= (nodes->minimal-edges #{[:a 1] [:b 2] [:c -3]})    #{[:a :c 1] [:b :c 2]}))))
@@ -344,9 +415,9 @@
 ;; success!
 
 ;; ...
-;; Or is it? Didn't I warn you this didn't have a happy ending? I assure you, despite our tests, and careful planning
+;; Or is it? Didn't I warn you this didn't have a happy ending? I assure you, despite our tests and careful planning
 ;; we failed. Do you see the issue? The problem is... I don't have the words to
-;; describe it, so let give you a glimpse of it. To do that, look at a set of net-worths/node-labels/integers:
+;; describe it, so let me give you a glimpse of it. To do that, look at a set of net-worths/node-labels/integers:
 
 ^{:nextjournal.clerk/visibility {:result :hide}}
 (def integers [-9 -8 -4 -2 -1 3 5 6 10])
@@ -457,9 +528,10 @@
 
 (integers->min-edge-graph-v2! integers)
 
-;; This is the Bug! Our tips so far weren't enough to protect us from it, but thats ok were only half way through them. And before we take the next step and tackle this pest, I want to take a moment and discuss why i think it's important to actually take a step back and think about how we framed this issue in the first place by calling it a bug.
+;; This is the Bug! Our tips so far weren't enough to protect us from it, but that's ok because we're only halfway through them. And before we take the next step and tackle this pest, I want to take a moment and discuss why i think it's important to actually take a step back and think about how we framed this issue in the first place by calling it a bug.
 
-;; In the software community a 'bug' commonly refers to any issue with where software is involved. Sounds vague? It is, wikipedia's defination is simply:
+;; In the software community a 'bug' commonly refers to any issue with where
+;; software is involved. Sounds vague? It is. Wikipedia's definition doesn't make things any more clear:
 
 ;; > A software bug is a bug in computer software.
 
@@ -467,42 +539,34 @@
 
 ;; > A software bug is a problem causing a program to crash or produce invalid output.
 
-;; That's better then wikipedia, but i'm curious how
+;; That's only marginally better. Let's look outside tech to get a broader
+;; perspective. To an entomologist, someone who studies bugs, a bug is anything
+;; with a piercing mouth that sucks juices from plants or animals.
+;; Interestingly, maybe a 1,000 years ago 'bug' roughly meant bugbear. And now ,
+;; to most people refers to those very little things that fly or crawl around.
 
-;; To a entomogists, a bug seems to be anything with a piercing mouth that sucks juices from plants or animals. Intrestingly, maybe a 1,000 years ago 'bug' roughly meant bugbear. And now , to most people refers to those very little things that fly or crawl around.
+;; The common theme here is that bugs are useless at best and likely irritating creatures that most would like to remove, which is why we call it 'debugging software'.
 
-;; The common theme here, except for the entomologist, is that bugs at best, are
-;; useless, and likely are irritating creatures that most would like to remove
-;; from the situation.
+;; However, I feel this outlook, when applied to troubleshooting, of assuming something has to be _removed_, is often misguided.
 
-;; I feel this outlook, when applied to troubleshooting a software problem, of
-;; assuming the problem is a pest to be _removed_ is often misguided.
+;; Often, instead, what's happened is that the author understands the program they have written, and how it will behave, but doesn't really understand what the objective is. For example, imagine a gardener who accidentally bought sunflowers seeds when they meant to buy tomato plant seeds. They dig, plant, water, wait, compost, all to end up with sunflowers. Would you suggest they start the process of getting what they want by seeing what they can remove from their sunflowers?
 
-;; Often, instead, what's happened is that the author understands the program they have written, and how it will behave, but doesn't really understand what the objective is. I thought all seeds grew tomato plants, so as part of along process of buying, planting, watering, when I end up with eating perfectly good sunflowers, it would be insane to start thinking about what to _remove_ from my sunflowers to make them into tomato plants.
+;  There was nothing wrong with the plant they have, beyond that it's not the one they wanted. Gardeners call this undesirable plant a 'weed'.
 
-;; Put another way, I didn't need to remove something from my sunflower, it's simply that what I really
-;; wanted to grow was tomatoes. There was nothing wrong with the plant I had, it just wasn't what I wanted.
-;; So it was a weed.
-
-;; I want make a suggestion to you, my reader, of not saying "we have a bug", but asking
+;; With that in mind, I want to make a suggestion to you, my reader, of not saying "we have a bug", but asking
 ;; Is this a bug or a weed? And that, is my next troubleshooting tip:
 
 ^{:nextjournal.clerk/visibility {:code :hide}}
 (tip! "Ask 'Weed or Bug?'" {:background-color "green" :color "white"})
 
 ;; While this distintion seems fuzzy in that both bugs and weeds are both
-;; undesirable things, however a weeds defining characteristic isn't that there
+;; undesirable things, remember that a weeds defining characteristic isn't that there
 ;; is something wrong with it, but that it's just not the plant you wanted.
 
-;; So, the issue isn't the weed you have, it's the plant you don't. A weed
-;; indicates something vital is lacking, and needs to be added. As where a bug
-;; suggests something needs to be removed.
+;; So I'm using the *software weed* to  indicate something is _lacking_. As where a *software bug* suggests something needs to be _removed_.
 
 ;; What matters is that the question starts to divide the problem. And breaking
 ;; the problem apart is the heart of effective troubleshooting.
-
-^{:nextjournal.clerk/visibility {:code :hide :result :hide}}
-(import '(javax.imageio ImageIO))
 
 ^{:nextjournal.clerk/visibility {:code :hide}}
 (ImageIO/read (.toURL (.toURI (clojure.java.io/file "resources/bug-yin-yang.png"))))
@@ -515,7 +579,7 @@
 ^{:nextjournal.clerk/visibility {:result :hide}}
 ["base cases"
  "remove cycles"
- "unconnected nodes"
+ "ok to transfer between unconnected nodes"
  "uneven positive and negative nodes"]
 
 ;; None of those claim to minimize transactions/loans/edges other then remove cycles, but are cycles
@@ -527,9 +591,7 @@
 ;; ambiguity of this question.
 
 ;; A transaction/loan/edge is produced anytime we add two net-worths/integers/node-labels and
-;; get a non-zero result. So to avoid transactions, we want results that equal zero.
-
-;; So given the choice, our algorithm should always pick 2 numbers that equal
+;; get a non-zero result. So to avoid transactions, we want results that equal zero. So given the choice, our algorithm should always pick 2 numbers that equal
 ;; zero. And given there is no option to do that, should it always remove one
 ;; node/net-worth/user from the set?
 
@@ -563,18 +625,11 @@
 ;; solution either. This principle seems to apply to picking three numbers that sum to zero as well.
 ;; As our test case demonstrates, to illusrate that here picturing where the incorrect triplet is highlited in red.
 
-;; TODO picture
+^{:nextjournal.clerk/visibility {:code :hide}}
+(clerk/html
+  [:img {:src "https://docs.google.com/drawings/d/e/2PACX-1vRArD27FhyPzvu5xEVBg-2aBRSAQCt14jyvoQT-kDC4E6Gz6N31ubApZwZ9J_h2pW2oE0qtVvK1P4qZ/pub?w=960&h=720" }])
 
-;; https://docs.google.com/drawings/d/e/2PACX-1vRArD27FhyPzvu5xEVBg-2aBRSAQCt14jyvoQT-kDC4E6Gz6N31ubApZwZ9J_h2pW2oE0qtVvK1P4qZ/pub?w=960&h=720
-
-;; Honestly, i think the picture just shows an example, but doesn't build any intution about the nature of the problem.
-
-;; The best I can say about the nature of what were dealing with is going to sound almost philosphical.
-;; Firstly numbers are ORDER, i mean, what is 0 if not less then 1, what is 3 if not bigger then 2? If we only had 1 number, it wouldn't be much use. All operations on numbers simply re-order them comapared to other numbers.
-
-;;
-
-;; a bit disheartened, because I knew a solution with permutations wouldn't scale very well,
+;; A bit disheartened, because I knew a solution with permutations wouldn't scale very well,
 ;; I quickly coded it to at least soldiify the idea. Just as described, we need something
 ;; to turn our set of integers into subsets that sum to zero:
 
@@ -583,14 +638,14 @@
   [integers]
   (->> integers
        (reduce
-        (fn [{:keys [zero-sum-subsets zero-sum-subset]} integer]
-          (let [zero-sum-subset (conj zero-sum-subset integer)]
-            (if (zero? (apply + zero-sum-subset))
-              {:zero-sum-subsets (conj zero-sum-subsets zero-sum-subset) :zero-sum-subset []}
-              {:zero-sum-subsets zero-sum-subsets :zero-sum-subset zero-sum-subset})))
-        {})
-       :zero-sum-subsets
-       set))
+         (fn [{:keys [zero-sum-subsets zero-sum-subset]} integer]
+           (let [zero-sum-subset (conj zero-sum-subset integer)]
+             (if (zero? (apply + zero-sum-subset))
+               {:zero-sum-subsets (conj zero-sum-subsets zero-sum-subset) :zero-sum-subset []}
+               {:zero-sum-subsets zero-sum-subsets :zero-sum-subset zero-sum-subset})))
+         {})
+       :zero-sum-subsets))
+
 
 ;; and use that to produce our zero-sum-subsets for one permutation
 
@@ -622,22 +677,16 @@
        (mapcat nodes->edges)
        edges->graph!))
 
-;; Is that it then, are we doomed to a factorial time solution if we want to
-;; guarantee the maz-zero-sum? I'm not sure honestly. I'm also not sure anything can be cached, aka, we can
+;; Is that it then? Are we doomed to a factorial time solution if we want to
+;; guarantee the max-zero-sum? I'm not sure honestly. I'm also not sure anything can be cached, aka, we can
 ;; use Dynamic programming, to make this better. After all, what would we cache? The mapping between a sum of a set and the set?
 ;; That would mean that any sets we cached would themselves contain sets/integers that were guartneed to be 'the right ones'.
 ;; The problem doesn't seem like it reduces. But maybe I'm wrong. Time to look afield, and this brings us to another tip...
 
-(tip! "Ask hard earned questions"
-      {:background-color "blue" :color "white"})
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "Ask hard earned questions" {:background-color "grey" :color "white"})
 
-;; an answer is only as good as it's question. And so now that were armed with a good question, which
-;; is the doc string of our function:
-
-;; > TODO
-
-;; we can start to listen to the world around us and have a chance of cutting through the noise. And so here
-;; at the end I promised i would explain why its better to avoid searching
+;; An answer is only as good as it's question. And so now that were armed with a good question, which is more or less our `max-zero-sum-subsets` docstring, we can start to listen to the world around us and have a chance of cutting through the noise. And so here at the end I promised i would explain why its better to avoid searching
 ;; for the answer to early before your very sure what your looking for.
 
 ;; Maybe our AI overloards can help? Here is what i asked ChatGPT 4o:
@@ -677,21 +726,19 @@ print(\"Number of partitions:\", len(partitions))
 ```")
 
 
-;; Feel free to think that one through, but it doesn't solve the problem. I
+;; Feel free to look this over, but it doesn't seem to solve the problem. I
 ;; found if asked a more general question about minimizing transactions it
 ;; would through out equally vague promises followed by incorrect specifics.
 
-;; Lets move past AI and try good google search and stackover flow.
-
-;; The [first S0](
-;; https://stackoverflow.com/questions/877728/what-algorithm-to-use-to-determine-minimum-number-of-actions-required-to-get-the) [second](https://softwareengineering.stackexchange.com/questions/337125/finding-the-minimum-transaction)
+;; Lets move past AI and try good old Stack overflow. Here the [first,](
+;;https://stackoverflow.com/questions/877728/what-algorithm-to-use-to-determine-minimum-number-of-actions-required-to-get-the) [second](https://softwareengineering.stackexchange.com/questions/337125/finding-the-minimum-transaction),
 ;; and [third](https://softwareengineering.stackexchange.com/questions/337125/finding-the-minimum-transaction) link also, as afar as i can tell, fail to suggest an algorithm which guarantees minimal transactions
 
-;; I then felt like i should look into what the competition was doing and found that SplitWise was using the
+;; I tried looking into what the competition was doing and found that SplitWise was using the
 ;; the [minimum cost flow algorithm](https://en.wikipedia.org/wiki/Minimum-cost_flow_problem), which i'm relative sure,
-;; doesn't guarantee the minimal amount of transactions either. This [post](https://medium.com/@subhrajeetpandey2001/splitwise-a-small-approach-of-greedy-algorithm-4039a1e919a6#:~:text=The%20Debt%20Simplification%20Algorithm%20used,as%20few%20edges%20as%20possible.) has this to say about the minimal cost flow algorithm:
+;; doesn't guarantee the minimal amount of transactions either. This [post](https://medium.com/@subhrajeetpandey2001/splitwise-a-small-approach-of-greedy-algorithm-4039a1e919a6#:~:text=The%20Debt%20Simplification%20Algorithm%20used,as%20few%20edges%20as%20possible.) seems to agree:
 
-;; > Here’s a simplified version of the algorithm:
+;; > Here’s a simplified version of the (splitwise) algorithm:
 
 ;; > Calculate the net balance for each member in the group.
 ;; > While there are outstanding balances:
@@ -705,10 +752,10 @@ print(\"Number of partitions:\", len(partitions))
 ;; >  O(V²) and space complexity is O(V), it may require more transactions than
 ;; >  necessary.
 
+
 ;; Two things to note there, the most important is that the author agrees with my
 ;; intution that it may require more transactions then necessary and if your read
-;; the steps, it's basically what we tried on our second step after we realized we
-;; needed two lists, so we KNOW it doesn't work.
+;; the steps, it's what we tried on our first attempt.
 
 ;; And finally here is a
 ;; [post](https://medium.com/@mithunmk93/algorithm-behind-splitwises-debt-simplification-feature-8ac485e97688)
@@ -716,19 +763,53 @@ print(\"Number of partitions:\", len(partitions))
 
 ;; > This indicates that the debt simplification problem is at least as hard as the Sum of Subsets Problem and hence it is NP-Complete
 
-;; However the author is making, i believe, a gross understatment. the subset
-;; problem finds out if there exists a subset of numubers that equal a given
+;; However the author is making, i believe, a gross understatement. The subset
+;; problem finds out if there exists a *single* subset of numubers that equal a given
 ;; number, discovering the maxium number of sets that the orginal set can break
 ;; into that equal that number might be a degree or two more work.
 
+;; I believe understanding the mathematical nature of the problem, would require a good bit of investment to get correct. A good place to start would be mit professor Erik Demaine's lectures on Algorithms. I think its likely our goal of finding the minimal transactions is related the 2 or 3-partition problem which Erik is talking about here:
+
+^{:nextjournal.clerk/visibility {:code :hide}}
+(clerk/html
+  "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/ZaSMm2xvatw?si=vdslOxKN043m5F7D&amp;start=222\" title=\"YouTube video player\" frameborder=\"0\" allow=\"accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share\" referrerpolicy=\"strict-origin-when-cross-origin\" allowfullscreen></iframe>")
+
 ;; Does all this mean my idea is doomed? Not at all, it just means i have to be
 ;; careful in my planning. If i want to guarantee the minimal, which i do, then
-;; ill, for the moment have to keep the input size small.
+;; ill, for the moment have to keep the input size small. Or figure out a way to
+;; cache results, or switch between algorithms as the size increases.
 
-;; I don't have to give up on my idea just because i can't scale it to work with everything. This brings us to my final
-;; tip:
+;; That brings me to my last tip:
 
+^{:nextjournal.clerk/visibility {:code :hide}}
 (tip! "Bend don't Break" {:background-color "black" :color "white"})
 
-;; The goal was inspired by a trip my friends went on, and how afterwards we had to figure out who owes who.
-;;
+;; Don't throw away a perfectly good garden of sunflowers just because they
+;; aren't tomato plants. Instead, brighten someones day with the gift of a
+;; flower.
+
+;; So here we are at the end, lets collect the rest of our tips and pack them away in hopes of using them next time:
+
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "No Pain, No Gain" {:background-color "#a12f2f" :color "white"})
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "Look inward before outward" {:background-color "blue" :color "white"})
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "Map the translation" {:background-color "Orange" :color "white"})
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "Ask 'Weed or Bug?'" {:background-color "green" :color "white"})
+^{:nextjournal.clerk/visibility {:code :hide}}
+(tip! "Ask hard earned questions" {:background-color "grey" :color "white"})
+
+;; Laid out like this, back to back, to me... they seem to lose much of there meaning. Why is that?
+
+;; I believe it's because we know the best things are those which can't be
+;; easily caught, or summarized. They rest always on the horizon, promising new
+;; opportunities, urging us forward. As where these tips, laid out on the ground like this, seem
+;; like things we already understand, and so, they promise no future potential.
+
+;; So here is my final advice, leave the troubleshooting tips, and take the journey.
+
+
+^{:nextjournal.clerk/visibility {:code :hide}}
+(ImageIO/read (.toURL (.toURI (clojure.java.io/file "resources/journey-end.png"))))
